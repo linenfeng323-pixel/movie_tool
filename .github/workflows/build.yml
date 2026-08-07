@@ -1,0 +1,66 @@
+name: Build MovieTool APK
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🎯 Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.22.x'
+          channel: 'stable'
+          cache: true
+
+      - name: 🔧 Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: ✅ Verify Flutter
+        run: flutter doctor -v
+
+      - name: 📦 Get dependencies
+        run: flutter pub get
+
+      - name: 🔍 Analyze code
+        run: flutter analyze
+
+      - name: 🧪 Run tests
+        run: flutter test
+
+      - name: 📱 Build APK (debug)
+        run: flutter build apk --debug
+
+      - name: 📱 Build APK (release)
+        run: flutter build apk --release
+
+      - name: 📤 Upload APK artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: movie-tool-apk
+          path: |
+            build/app/outputs/flutter-apk/*.apk
+          if-no-files-found: error
+
+      - name: 📱 Build App Bundle (release)
+        run: flutter build appbundle --release
+
+      - name: 📤 Upload AAB artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: movie-tool-aab
+          path: |
+            build/app/outputs/bundle/release/*.aab
+          if-no-files-found: error
