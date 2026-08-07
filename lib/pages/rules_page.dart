@@ -252,7 +252,7 @@ class _RulesPageState extends State<RulesPage> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
-                          icon: const Icon(Icons.export, size: 20),
+                          icon: const Icon(Icons.file_download, size: 20),
                           tooltip: '导出JSON',
                           onPressed: () => _exportRule(rule),
                         ),
