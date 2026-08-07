@@ -1,0 +1,35 @@
+name: movie_tool
+description: "跨平台电影聚合播放器"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  dio: ^5.4.0
+  path_provider: ^2.1.2
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  cached_network_image: ^3.3.1
+  xpath_selector: ^3.0.2
+  xpath_selector_html_parser: ^3.0.1
+  html: ^0.15.4
+  url_launcher: ^6.2.4
+  provider: ^6.1.1
+  video_player: ^2.8.6
+  webview_flutter: ^4.7.0
+  wakelock_plus: ^1.2.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.1
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/rules/
