@@ -34,48 +34,13 @@ jobs:
       - name: 📦 Get dependencies
         run: flutter pub get
 
-      - name: 🏗️ Regenerate Android platform
+      - name: 🏗️ Fix Android config
         run: |
-          flutter create --platforms android .
-          flutter pub get
-          # Fix Gradle wrapper version
+          # Fix Gradle wrapper version to match AGP 8.1.0
           echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-all.zip" > android/gradle/wrapper/gradle-wrapper.properties
-          # Remove duplicate XML icon files that conflict with generated PNGs
-          rm -f android/app/src/main/res/mipmap-hdpi/ic_launcher.xml
-          rm -f android/app/src/main/res/mipmap-mdpi/ic_launcher.xml
-          rm -f android/app/src/main/res/mipmap-xhdpi/ic_launcher.xml
-          rm -f android/app/src/main/res/mipmap-xxhdpi/ic_launcher.xml
-          rm -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.xml
-          # Fix Android build.gradle
-          cat > android/build.gradle << 'GRADLE'
-          buildscript {
-              ext.kotlin_version = '1.9.0'
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-              dependencies {
-                  classpath 'com.android.tools.build:gradle:8.1.0'
-                  classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-              }
-          }
-          allprojects {
-              repositories {
-                  google()
-                  mavenCentral()
-              }
-          }
-          rootProject.buildDir = '../build'
-          subprojects {
-              project.buildDir = "\${rootProject.buildDir}/\${project.name}"
-          }
-          subprojects {
-              project.evaluationDependsOn(':app')
-          }
-          tasks.register("clean", Delete) {
-              delete rootProject.buildDir
-          }
-          GRADLE
+          # Ensure settings.gradle exists
+          ls -la android/settings.gradle 2>/dev/null || echo "include ':app'" > android/settings.gradle
+          ls -la android/
 
       - name: 📱 Build APK (debug)
         run: flutter build apk --debug
