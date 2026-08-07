@@ -1,5 +1,4 @@
-import 'package:html/parser.dart' as html_parser;
-import 'package:xpath_selector/xpath_selector.dart';
+import 'package:xpath_selector_html_parser/xpath_selector_html_parser.dart' as html_xpath;
 import 'package:movie_tool/models/movie.dart';
 import 'package:movie_tool/models/rule.dart';
 import 'package:movie_tool/services/http_service.dart';
@@ -25,37 +24,27 @@ class XPathService {
 
   List<MovieItem> _parseSearchResults(String html, MovieRule rule) {
     final items = <MovieItem>[];
-    final document = html_parser.parse(html);
-    final xp = XPath(rule.searchListXPath);
-    final elements = xp.select(document);
+    final doc = html_xpath.HtmlXPath.html(html);
+    final elements = doc.query(rule.searchListXPath);
 
-    for (final node in elements) {
+    for (final element in elements) {
       try {
-        String title = '';
-        if (rule.titleXPath.isNotEmpty) {
-          final titleXp = XPath(rule.titleXPath);
-          title = titleXp.select(node).stringValue;
-        }
-        if (title.trim().isEmpty) continue;
+        final title = element.queryXPath(rule.titleXPath).node?.text?.trim() ?? '';
+        if (title.isEmpty) continue;
 
         String cover = '';
         if (rule.coverXPath.isNotEmpty) {
-          final coverXp = XPath(rule.coverXPath);
-          cover = coverXp.select(node).stringValue;
+          cover = element.queryXPath(rule.coverXPath).attr ?? '';
           if (cover.isEmpty) {
-            final imgNodes = coverXp.select(node).nodes;
-            if (imgNodes.isNotEmpty) {
-              cover = imgNodes.first.getAttribute('src') ?? '';
-            }
+            cover = element.queryXPath(rule.coverXPath).nodes.firstOrNull?.getAttribute('src') ?? '';
           }
         }
 
         String detailUrl = '';
         if (rule.detailLinkXPath.isNotEmpty) {
-          final linkXp = XPath(rule.detailLinkXPath);
-          final hrefNodes = linkXp.select(node).nodes;
-          if (hrefNodes.isNotEmpty) {
-            detailUrl = hrefNodes.first.getAttribute('href') ?? '';
+          final hrefNode = element.queryXPath(rule.detailLinkXPath).nodes.firstOrNull;
+          if (hrefNode != null) {
+            detailUrl = hrefNode.getAttribute('href') ?? '';
             if (detailUrl.isNotEmpty && !detailUrl.startsWith('http')) {
               final base = rule.baseUrl.replaceAll(RegExp(r'/+$'), '');
               detailUrl = detailUrl.startsWith('/') ? '$base$detailUrl' : '$base/$detailUrl';
@@ -67,8 +56,7 @@ class XPathService {
 
         String year = '';
         if (rule.yearXPath.isNotEmpty) {
-          final yearXp = XPath(rule.yearXPath);
-          year = yearXp.select(node).stringValue;
+          year = element.queryXPath(rule.yearXPath).node?.text?.trim() ?? '';
         }
 
         items.add(MovieItem(
@@ -87,62 +75,50 @@ class XPathService {
 
   Future<MovieDetail> getMovieDetail(MovieRule rule, String detailUrl) async {
     final html = await _http.get(detailUrl, referer: rule.referer);
-    final document = html_parser.parse(html);
+    final doc = html_xpath.HtmlXPath.html(html);
 
     String title = '';
     try {
-      if (rule.titleXPath.isNotEmpty) {
-        final xp = XPath(rule.titleXPath);
-        title = xp.select(document).stringValue;
-      }
+      title = doc.query(rule.titleXPath).node?.text?.trim() ?? '';
     } catch (_) {}
 
     String cover = '';
     if (rule.coverXPath.isNotEmpty) {
       try {
-        final xp = XPath(rule.coverXPath);
-        final nodes = xp.select(document).nodes;
-        if (nodes.isNotEmpty) {
-          cover = nodes.first.getAttribute('src') ?? '';
-        }
+        cover = doc.query(rule.coverXPath).nodes.firstOrNull?.getAttribute('src') ?? '';
       } catch (_) {}
     }
 
     String description = '';
     if (rule.descriptionXPath.isNotEmpty) {
       try {
-        final xp = XPath(rule.descriptionXPath);
-        description = xp.select(document).stringValue;
+        description = doc.query(rule.descriptionXPath).node?.text?.trim() ?? '';
       } catch (_) {}
     }
 
     String actors = '';
     if (rule.actorXPath.isNotEmpty) {
       try {
-        final xp = XPath(rule.actorXPath);
-        actors = xp.select(document).stringValue;
+        actors = doc.query(rule.actorXPath).node?.text?.trim() ?? '';
       } catch (_) {}
     }
 
     String year = '';
     if (rule.yearXPath.isNotEmpty) {
       try {
-        final xp = XPath(rule.yearXPath);
-        year = xp.select(document).stringValue;
+        year = doc.query(rule.yearXPath).node?.text?.trim() ?? '';
       } catch (_) {}
     }
 
     final playSources = <PlaySource>[];
     if (rule.playSourceListXPath.isNotEmpty) {
       try {
-        final srcXp = XPath(rule.playSourceListXPath);
-        final sourceElements = srcXp.select(document);
-        for (final sourceNode in sourceElements) {
-          final linkXp = XPath(rule.playUrlXPath);
-          final linkNodes = linkXp.select(sourceNode).nodes;
+        final sourceElements = doc.query(rule.playSourceListXPath);
+        for (final sourceElement in sourceElements) {
+          final linkNodes = sourceElement.queryXPath(rule.playUrlXPath);
           for (final linkNode in linkNodes) {
             final href = linkNode.getAttribute('href') ?? '';
-            final text = linkNode.stringValue.trim();
+            final text = linkNode.text?.trim() ?? '';
             if (href.isNotEmpty && text.isNotEmpty) {
               String fullUrl = href;
               if (!href.startsWith('http')) {
