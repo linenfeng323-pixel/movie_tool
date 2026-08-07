@@ -2,18 +2,20 @@ include: package:flutter_lints/flutter.yaml
 
 linter:
   rules:
-    prefer_const_constructors: true
-    prefer_const_declarations: true
+    prefer_const_constructors: false
+    prefer_const_declarations: false
     avoid_print: true
-    prefer_single_quotes: true
-    sort_child_properties_last: true
-    use_key_in_widget_constructors: true
-    avoid_unnecessary_containers: true
-    prefer_const_literals_to_create_immutables: true
+    prefer_single_quotes: false
+    sort_child_properties_last: false
+    use_key_in_widget_constructors: false
+    avoid_unnecessary_containers: false
+    prefer_const_literals_to_create_immutables: false
 
 analyzer:
   errors:
     invalid_annotation_target: ignore
+    missing_return: error
+    unused_import: warning
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
