@@ -6,7 +6,9 @@ import 'package:movie_tool/services/xpath_service.dart';
 import 'package:movie_tool/pages/detail_page.dart';
 
 class SearchPage extends StatefulWidget {
-  const SearchPage({super.key});
+  final String? initialKeyword;
+
+  const SearchPage({super.key, this.initialKeyword});
 
   @override
   State<SearchPage> createState() => _SearchPageState();
@@ -20,11 +22,15 @@ class _SearchPageState extends State<SearchPage> {
   bool _isLoading = false;
   MovieRule? _selectedRule;
   List<MovieRule> _rules = [];
+  bool _didInitialSearch = false;
 
   @override
   void initState() {
     super.initState();
     _loadRules();
+    if (widget.initialKeyword != null && widget.initialKeyword!.isNotEmpty) {
+      _searchController.text = widget.initialKeyword!;
+    }
   }
 
   void _loadRules() {
@@ -33,6 +39,11 @@ class _SearchPageState extends State<SearchPage> {
       _selectedRule = _rules.first;
     }
     setState(() {});
+    // Auto search after rules loaded
+    if (!_didInitialSearch && widget.initialKeyword != null && _rules.isNotEmpty) {
+      _didInitialSearch = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) => _search());
+    }
   }
 
   Future<void> _search() async {
