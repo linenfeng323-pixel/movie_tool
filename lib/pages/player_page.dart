@@ -639,7 +639,7 @@ class _PlayerPageState extends State<PlayerPage> with WidgetsBindingObserver {
                                   activeTrackColor: Colors.red,
                                   inactiveTrackColor: Colors.white24,
                                   thumbColor: Colors.red,
-                                  overlayColor: Colors.red.withValues(alpha: 0.2),
+                                  overlayColor: Colors.red.withOpacity(0.2),
                                 ),
                                 child: Slider(
                                   min: 0,
