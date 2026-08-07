@@ -1,0 +1,49 @@
+# Dependencies
+flutter/
+build/
+.dart_tool/
+.packages
+.pub/
+.pub-cache/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+
+# Android
+android/.gradle/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+*.jks
+*.keystore
+
+# iOS
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/build/
+
+# macOS
+macos/Pods/
+macos/.symlinks/
+macos/build/
+
+# Web
+web/build/
+
+# General
+.DS_Store
+*.log
+*.tmp
+*.bak
+*.pid
+.env
+.env.local
+coverage/
+node_modules/
