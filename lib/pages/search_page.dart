@@ -69,7 +69,7 @@ class _SearchPageState extends State<SearchPage> {
                 setState(() => _selectedRule = rule);
               },
               itemBuilder: (context) => _rules.map((rule) {
-                return PopupMenuMenuItem(
+                return PopupMenuItem<MovieRule>(
                   value: rule,
                   child: Text(
                     rule.name,
