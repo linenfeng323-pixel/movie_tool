@@ -171,12 +171,13 @@ class _PlayerPageState extends State<PlayerPage> with WidgetsBindingObserver {
   }
 
   String? _extractVideoUrl(String html) {
-    final patterns = [
+    // Use String patterns instead of RegExp with embedded quotes
+    final patterns = <Pattern>[
       RegExp(r'data-url="([^"]+)"'),
-      RegExp(r'url:\s*["\']([^"\']+\.(?:m3u8|mp4|webm|flv)[^"\']*)["\']'),
+      RegExp(r'url:\s*["\x27]([^"\x27]+\.(?:m3u8|mp4|webm|flv)[^"\x27]*)["\x27]'),
       RegExp(r'"url"\s*:\s*"([^"]+\.(?:m3u8|mp4|webm|flv)[^"]*)"'),
       RegExp(r'src="([^"]+\.(?:m3u8|mp4|webm|flv)[^"]*)"'),
-      RegExp(r'video_url\s*=\s*["\']([^"\']+)["\']'),
+      RegExp(r'video_url\s*=\s*["\x27]([^"\x27]+)["\x27]'),
       RegExp(r'"link"\s*:\s*"([^"]+)"'),
       RegExp(r'<video[^>]*src="([^"]+)"'),
       RegExp(r'"play_url"\s*:\s*"([^"]+)"'),
@@ -184,16 +185,18 @@ class _PlayerPageState extends State<PlayerPage> with WidgetsBindingObserver {
     ];
 
     for (final pattern in patterns) {
-      final match = pattern.firstMatch(html);
-      if (match != null) {
-        String url = match.group(1)!.replaceAll('\\', '');
-        try {
-          url = url.replaceAllMapped(
-              RegExp(r'\\u([0-9a-fA-F]{4})'), (m) {
-            return String.fromCharCode(int.parse(m.group(1)!, radix: 16));
-          });
-        } catch (_) {}
-        return url;
+      if (pattern is RegExp) {
+        final match = pattern.firstMatch(html);
+        if (match != null) {
+          String url = match.group(1)!.replaceAll('\\', '');
+          try {
+            url = url.replaceAllMapped(
+                RegExp(r'\\u([0-9a-fA-F]{4})'), (m) {
+              return String.fromCharCode(int.parse(m.group(1)!, radix: 16));
+            });
+          } catch (_) {}
+          return url;
+        }
       }
     }
     return null;
@@ -354,11 +357,10 @@ class _PlayerPageState extends State<PlayerPage> with WidgetsBindingObserver {
 
   Widget _buildWebView() {
     try {
-      return WebViewWidget(
-        controller: WebViewController()
-          ..setJavaScriptMode(JavaScriptMode.unrestricted)
-          ..loadRequest(Uri.parse(_playableUrl ?? widget.url)),
-      );
+      final controller = WebViewController()
+        ..setJavaScriptMode(JavaScriptMode.unrestricted)
+        ..loadRequest(Uri.parse(_playableUrl ?? widget.url));
+      return WebViewWidget(controller: controller);
     } catch (e) {
       return Center(
         child: Column(
