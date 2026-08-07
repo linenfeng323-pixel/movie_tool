@@ -34,10 +34,42 @@ jobs:
       - name: 📦 Get dependencies
         run: flutter pub get
 
-      - name: 🏗️ Regenerate Android platform
+      - name: 🏗️ Set up Android project
         run: |
           flutter create --platforms android .
           flutter pub get
+          # Fix Gradle wrapper version
+          echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-all.zip" > android/gradle/wrapper/gradle-wrapper.properties
+          # Fix Android build.gradle for AGP compatibility
+          cat > android/build.gradle << 'EOF'
+          buildscript {
+              ext.kotlin_version = '1.9.0'
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+              dependencies {
+                  classpath 'com.android.tools.build:gradle:8.1.0'
+                  classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+              }
+          }
+          allprojects {
+              repositories {
+                  google()
+                  mavenCentral()
+              }
+          }
+          rootProject.buildDir = '../build'
+          subprojects {
+              project.buildDir = "\${rootProject.buildDir}/\${project.name}"
+          }
+          subprojects {
+              project.evaluationDependsOn(':app')
+          }
+          tasks.register("clean", Delete) {
+              delete rootProject.buildDir
+          }
+          EOF
 
       - name: 📱 Build APK (debug)
         run: flutter build apk --debug
