@@ -34,14 +34,20 @@ jobs:
       - name: 📦 Get dependencies
         run: flutter pub get
 
-      - name: 🏗️ Set up Android project
+      - name: 🏗️ Regenerate Android platform
         run: |
           flutter create --platforms android .
           flutter pub get
           # Fix Gradle wrapper version
           echo "distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-all.zip" > android/gradle/wrapper/gradle-wrapper.properties
-          # Fix Android build.gradle for AGP compatibility
-          cat > android/build.gradle << 'EOF'
+          # Remove duplicate XML icon files that conflict with generated PNGs
+          rm -f android/app/src/main/res/mipmap-hdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-mdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-xhdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-xxhdpi/ic_launcher.xml
+          rm -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.xml
+          # Fix Android build.gradle
+          cat > android/build.gradle << 'GRADLE'
           buildscript {
               ext.kotlin_version = '1.9.0'
               repositories {
@@ -69,7 +75,7 @@ jobs:
           tasks.register("clean", Delete) {
               delete rootProject.buildDir
           }
-          EOF
+          GRADLE
 
       - name: 📱 Build APK (debug)
         run: flutter build apk --debug
