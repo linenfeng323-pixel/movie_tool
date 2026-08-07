@@ -27,7 +27,7 @@ class XPathService {
     final items = <MovieItem>[];
     try {
       final doc = HtmlXPath.html(html);
-      final elements = doc.query(rule.searchListXPath);
+      final elements = doc.query(rule.searchListXPath).nodes;
       for (final element in elements) {
         try {
           final title = element.queryXPath(rule.titleXPath).node?.text?.trim() ?? '';
@@ -36,14 +36,17 @@ class XPathService {
           if (rule.coverXPath.isNotEmpty) {
             cover = element.queryXPath(rule.coverXPath).attr ?? '';
             if (cover.isEmpty) {
-              cover = element.queryXPath(rule.coverXPath).nodes.firstOrNull?.getAttribute('src') ?? '';
+              final imgNode = element.queryXPath(rule.coverXPath).nodes.firstOrNull;
+              if (imgNode != null) {
+                cover = imgNode.attributes['src'] ?? '';
+              }
             }
           }
           String detailUrl = '';
           if (rule.detailLinkXPath.isNotEmpty) {
             final hrefNode = element.queryXPath(rule.detailLinkXPath).nodes.firstOrNull;
             if (hrefNode != null) {
-              detailUrl = hrefNode.getAttribute('href') ?? '';
+              detailUrl = hrefNode.attributes['href'] ?? '';
               if (detailUrl.isNotEmpty && !detailUrl.startsWith('http')) {
                 final base = rule.baseUrl.replaceAll(RegExp(r'/+$'), '');
                 detailUrl = detailUrl.startsWith('/') ? '$base$detailUrl' : '$base/$detailUrl';
@@ -80,7 +83,7 @@ class XPathService {
 
     String cover = '';
     if (rule.coverXPath.isNotEmpty) {
-      try { cover = doc.query(rule.coverXPath).nodes.firstOrNull?.getAttribute('src') ?? ''; } catch (_) {}
+      try { cover = doc.query(rule.coverXPath).nodes.firstOrNull?.attributes['src'] ?? ''; } catch (_) {}
     }
 
     String description = '';
@@ -101,11 +104,11 @@ class XPathService {
     final playSources = <PlaySource>[];
     if (rule.playSourceListXPath.isNotEmpty) {
       try {
-        final sourceElements = doc.query(rule.playSourceListXPath);
+        final sourceElements = doc.query(rule.playSourceListXPath).nodes;
         for (final sourceElement in sourceElements) {
-          final linkNodes = sourceElement.queryXPath(rule.playUrlXPath);
+          final linkNodes = sourceElement.queryXPath(rule.playUrlXPath).nodes;
           for (final linkNode in linkNodes) {
-            final href = linkNode.getAttribute('href') ?? '';
+            final href = linkNode.attributes['href'] ?? '';
             final text = linkNode.text?.trim() ?? '';
             if (href.isNotEmpty && text.isNotEmpty) {
               String fullUrl = href;
